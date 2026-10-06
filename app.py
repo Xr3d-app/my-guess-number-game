@@ -86,7 +86,7 @@ if st.session_state.screen == "menu":
         st.subheader("🌐 СЕТЕВОЙ ОНЛАЙН")
         st.write("Создай комнату по секретному имени или подключись к комнате друга!")
         if st.button("Войти в Онлайн-Лобби", use_container_width=True):
-            st.session_state.screen = "online_choice" # Переходим на экран выбора роли
+            st.session_state.screen = "online_choice" 
             st.rerun()
 
 
@@ -95,20 +95,16 @@ elif st.session_state.screen == "bot_game":
     st.title("🤖 Чат-комната с Ботом")
     col_back, col_reset = st.columns(2)
     with col_back:
-        if st.button("⬅️ Выйти в меню", key="exit_bot", use_container_width=True): 
-            reset_all_games()
+        if st.button("⬅️ Выйти в меню", key="exit_bot", use_container_width=True): reset_all_games()
     with col_reset:
-        if st.button("🔄 Начать заново", key="reset_bot_btn", use_container_width=True): 
-            restart_bot_only()
+        if st.button("🔄 Начать заново", key="reset_bot_btn", use_container_width=True): restart_bot_only()
     st.write("---")
     
     with st.container():
         if not st.session_state.bot_history:
             st.info("🤖 **Бот:** Я загадал число от 1 до 100! Твой вариант?")
 
-        for message in st.session_state.bot_history: 
-            st.write(message)
-        
+        for message in st.session_state.bot_history: st.write(message)
         st.write("---")
 
         if not st.session_state.bot_game_over:
@@ -133,13 +129,11 @@ elif st.session_state.screen == "bot_game":
                         st.session_state.bot_game_over = True
                         st.balloons()
                         st.rerun()
-                else:
-                    st.error("⚠️ Введи корректное число от 1 до 100!")
-        else:
-            st.success(f"🎉 Игра окончена! Ты победил бота за {st.session_state.bot_attempts} ходов. Нажми 'Начать заново' для нового раунда.")
+                else: st.error("⚠️ Введи число от 1 до 100!")
+        else: st.success(f"🎉 Игра окончена за {st.session_state.bot_attempts} ходов.")
 
 
-# --- 4. ЭКРАН ВЫБОРА: СОЗДАТЬ ИЛИ ПРИСОЕДИНИТЬСЯ ---
+# --- 4. ЭКРАН ВЫБОРА РОЛИ ---
 elif st.session_state.screen == "online_choice":
     st.title("🌐 Выбор онлайн-режима")
     if st.button("⬅️ Назад в меню", use_container_width=True):
@@ -148,25 +142,19 @@ elif st.session_state.screen == "online_choice":
         
     st.write("---")
     col_create, col_join = st.columns(2)
-    
     with col_create:
         st.subheader("🔒 Создать лобби")
-        st.write("Загадай число и создай новую секретную комнату для друга.")
         if st.button("Создать Лобби", use_container_width=True):
             st.session_state.online_role = "Создатель"
             st.session_state.screen = "online_game"
             st.rerun()
-            
     with col_join:
         st.subheader("🕵️ Присоединиться")
-        st.write("Введи имя комнаты, которую создал твой друг, и начни угадывать.")
         if st.button("Войти к Другу", use_container_width=True):
             st.session_state.online_role = "Угадывающий"
             st.session_state.screen = "online_game"
             st.rerun()
-
-
-# --- 5. ЭКРАН 3:🌐 ПРОКАЧАННАЯ ОНЛАЙН ИГРА ---
+# --- 5. ЭКРАН 3: 🌐 НАСТОЯЩИЙ СЕТЕВОЙ ОНЛАЙН ---
 elif st.session_state.screen == "online_game":
     st.title(f"🌐 Сетевая комната ({st.session_state.online_role})")
     
@@ -175,7 +163,7 @@ elif st.session_state.screen == "online_game":
         
     st.write("---")
     
-    # Если комната еще не выбрана локально
+    # Если комната еще не выбрана локально во вкладке
     if st.session_state.current_room is None:
         if st.session_state.online_role == "Создатель":
             st.subheader("Шаг 1: Придумай имя лобби и секретное число")
@@ -191,7 +179,6 @@ elif st.session_state.screen == "online_game":
                 elif not secret_input.isdigit() or not (1 <= int(secret_input) <= 100):
                     st.error("⚠️ Введи число от 1 до 100!")
                 else:
-                    # Создаем комнату в глобальной сети сервера
                     global_rooms[room_input] = {
                         "secret": int(secret_input),
                         "history": [f"📢 **Система:** Комната `{room_input}` успешно создана! Ready Player 2."],
@@ -214,11 +201,10 @@ elif st.session_state.screen == "online_game":
                     st.session_state.current_room = room_input
                     st.rerun()
 
-    # ЕСЛИ КОМНАТА ВЫБРАНА И ИГРА НАЧАЛАСЬ
+    # ЕСЛИ ВЫ КОМНАТУ ВВЕЛИ И ИГРАЕМ ПРЯМО СЕЙЧАС
     else:
         room_name = st.session_state.current_room
         
-        # Защита: если создатель сбросил лобби, угадывающего выкинет в меню
         if room_name not in global_rooms:
             st.error("⚠️ Лобби было закрыто создателем или удалено.")
             time.sleep(2)
@@ -228,13 +214,13 @@ elif st.session_state.screen == "online_game":
         
         st.subheader(f"🔒 Лобби: {room_name}")
         
-        # Показываем лог игры и чата
+        # Показываем общий чат и лог ходов
         with st.container():
             for message in room["history"]:
                 st.write(message)
         st.write("---")
         
-        # ОБЩИЙ ЧАТ (Доступен обоим)
+        # ОБЩИЙ СЕТЕВОЙ ТЕКСТОВЫЙ ЧАТ
         st.write("💬 **Сетевой чат:**")
         with st.form(key="lobby_chat_form", clear_on_submit=True):
             chat_text = st.text_input("Напиши сообщение в чат лобби:", value="", key="lobby_chat_input")
@@ -246,3 +232,45 @@ elif st.session_state.screen == "online_game":
             
         st.write("---")
         
+        # ТА САМАЯ ИГРОВАЯ ЗОНА С РАЗДЕЛЕНИЕМ ПРАВ
+        if not room["game_over"]:
+            st.write(f"📊 Всего попыток сделано другом: **{room['attempts']}**")
+            
+            if st.session_state.online_role == "Угадывающий":
+                with st.form(key="lobby_guess_form", clear_on_submit=True):
+                    guess_input = st.text_input("Твой числовой ответ:", value="", key="lobby_guess_input")
+                    submit_guess = st.form_submit_button("Проверить число", use_container_width=True)
+                keep_focus()
+                
+                if submit_guess and guess_input:
+                    if guess_input.isdigit():
+                        guess = int(guess_input)
+                        room["attempts"] += 1
+                        
+                        if guess < room["secret"]:
+                            room["history"].append(f"🎯 **Друг ввёл:** {guess} (Попытка №{room['attempts']}) ➡️ 🖥️ **Сеть:** 🔼 Мало!")
+                            st.rerun()
+                        elif guess > room["secret"]:
+                            room["history"].append(f"🎯 **Друг ввёл:** {guess} (Попытка №{room['attempts']}) ➡️ 🖥️ **Сеть:** 🔽 Много!")
+                            st.rerun()
+                        else:
+                            room["history"].append(f"🏆 **Победа! Друг разгадал число:** {guess} за {room['attempts']} поп.!")
+                            room["game_over"] = True
+                            st.balloons()
+                            st.rerun()
+                    else:
+                        st.error("⚠️ Вводи цифры!")
+            else:
+                st.info("👁️ Ты создатель. Поле ввода закрыто. Наблюдай за попытками друга в реальном времени и общайся в чате!")
+        else:
+            st.success(f"🏆 Раунд завершен! Загаданное число было: **{room['secret']}**")
+            
+        # Кнопка сброса лобби
+        if st.button("🔄 Закрыть/Очистить лобби и выйти", use_container_width=True):
+            if room_name in global_rooms:
+                del global_rooms[room_name]
+            reset_all_games()
+            
+        # Автообновление экрана раз в 2 секунды, чтобы чат обновлялся сам
+        time.sleep(2)
+        st.rerun()
